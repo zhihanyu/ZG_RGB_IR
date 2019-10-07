@@ -1,3 +1,0 @@
----- net_event_callback Matches (2 in 1 files) ----
-WIFI_config.c (net) line 152 : void net_event_callback(uint32_t event, uint32_t data,void *arg)
-net_service_init in WIFI_config.c (net) : 						net_event_callback,NULL);
