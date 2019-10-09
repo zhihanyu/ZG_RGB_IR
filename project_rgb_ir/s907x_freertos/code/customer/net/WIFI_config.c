@@ -1,18 +1,25 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "net/wlan/wlan.h"
-#include "net/wlan/wlan_defs.h"
-#include "common/framework/net_ctrl.h"
-#include "common/framework/sys_ctrl/sys_ctrl.h"
-
-#include "common/framework/sysinfo.h"
-
-#include "kernel/FreeRTOS/event_groups.h"
-
 #include "sys/ZG_system.h"
-#include "driver/chip/hal_wdg.h"
+#include "s907x_zg_config.h"
 
+#include "FreeRTOS.h"
+#include "event_groups.h"
+
+#if ZG_BUILD
+
+#define     S907X_WDG_IN_SERVER
+
+static u8 g_wlan_mode = S907X_MODE_NONE;
+static int g_wlan_netif = S907X_DEV0_ID;
+
+#ifdef      S907X_WDG_IN_SERVER
+#define     S907X_WDG_REFTIME_MS        2000   
+static      wdg_hdl_t wdg_hdl;
+#endif
+
+#endif
 
 static uint8_t mac_addr[6];
 static char mac_addr_str[13];
@@ -30,6 +37,13 @@ static EventGroupHandle_t wifi_event_group;
 static TimerHandle_t rstimer;
 static uint8_t reset_count,sec;
 
+static void net_switch_mode(u8 mode)
+{
+  s907x_wlan_off();
+  wl_os_mdelay(100);
+  s907x_wlan_on(mode);
+}
+
 void wifi_scan_ap()
 {
   
@@ -39,29 +53,30 @@ void wifi_scan_ap()
 
 int ZG_restart_system(void)
 {
-	HAL_Status status = HAL_ERROR;
-	WDG_HwInitParam hwParam;
-	WDG_InitParam param;
+#ifndef    S907X_WDG_IN_SERVER 
 
-	hwParam.event = WDG_EVT_RESET_CPU;
-	hwParam.resetCpuMode = WDG_RESET_CPU_CORE;
-	hwParam.timeout = WDG_TIMEOUT_2SEC;
-	hwParam.resetCycle = 1;
+    wl_os_mdelay(50);
+    NVIC_SystemReset();
+    USER_DBG("system restart.\n");
+    
+#else
 
-	param.hw = hwParam;
+    wdg_hdl.time_ms = S907X_WDG_REFTIME_MS;
+    s907x_hal_wdg_init(&wdg_hdl);
+    s907x_hal_wdg_start(&wdg_hdl);
 
-	status = HAL_WDG_Init(&param);
-	if (status != HAL_OK)
-		printf("Wdg Init Error %d\n", status);
-	else
-		printf("WatchDog ResetCpu Mode Started.\n");
-    HAL_WDG_Start();
-	return status;
+    //if refresh watch dog timeout,system restarted
+    USER_DBG("system restart by watch dog.\n");
+    
+#endif
+    
+    return 0;
 }
 
 void rstimer_cb(void *arg)
 {
  sec++;
+ USER_DBG("factory config info will be setting after %ds\n", (9-sec));
 
 /*取消计数恢复出厂功能*/
  if(sec >= 8){
@@ -151,6 +166,7 @@ static void save_wifi_mode(ZG_wifi_mode_t mode)
 
 void net_event_callback(uint32_t event, uint32_t data,void *arg)
 {
+#if 0
 	uint16_t type = EVENT_SUBTYPE(event);
 
 	printf("%s msg (%u, %u)\n", __func__, type, data);
@@ -229,6 +245,7 @@ void net_event_callback(uint32_t event, uint32_t data,void *arg)
 		printf("unknown msg (%u, %u)\n", type, data);
 		break;
 	}
+#endif
 }
 
 int get_wifi_connection_status(int xTicksToWait)
@@ -263,12 +280,24 @@ void wifi_password_conf(uint8_t *str,int len)
 
 static void wifi_STA_Start()
 {
+#if ZG_BUILD
+    g_wlan_mode = S907X_MODE_STA;
+    if(HAL_OK != s907x_wlan_start(g_wlan_mode, &wifi_set)){
+        USER_DBG("sta start wtih ssid:%s password:%s fail!\n", wifi_set.ssid, wifi_set.pwd);
+        return;
+    }
+
+    USER_DBG("sta start success\n");
+    save_wifi_mode(ZG_STA_MODE);
+
+#else
   net_switch_mode(WLAN_MODE_STA);
   wlan_sta_set(wifi_set.ssid, wifi_set.ssid_len, wifi_set.pwd);
   wlan_sta_enable();
   save_wifi_mode(ZG_STA_MODE);
   printf("wifi_init_sta finished.SSID:%s password:%s\n",
 	wifi_set.ssid, wifi_set.pwd);
+#endif
 }
 
 
@@ -279,18 +308,44 @@ static void AP_IP_Config()
 
 static void wifi_AP_Start()
 {
-	net_switch_mode(WLAN_MODE_HOSTAP);
-	/* disable AP to set params*/
-	wlan_ap_disable();
 
-	wlan_ap_set(wifi_set.ssid, wifi_set.ssid_len, wifi_set.pwd);
+#if ZG_BUILD
+    g_wlan_mode = S907X_MODE_AP;
 
-	wlan_ap_enable();
-   
-	printf("wifi_init_softap finished.SSID:%s password:%s\n",
-	wifi_set.ssid, wifi_set.pwd);
+    wifi_set.ssid[0] = '0';
+    wifi_set.ssid[1] = '1';
+    wifi_set.ssid[2] = '2';
+    wifi_set.ssid[3] = '0';
+    wifi_set.ssid[4] = '0';
+    wifi_set.ssid[5] = '2';
+    wifi_set.ssid[6] = '2';
+    wifi_set.ssid[7] = '2';
+    wifi_set.ssid[8] = 0;
+    wifi_set.ssid_len= sizeof(wifi_set.ssid);
+    wl_memset(wifi_set.pwd, 0, sizeof(wifi_set.pwd));
+    wifi_set.pwd_len = 0;
 
-	save_wifi_mode(ZG_AP_MODE);
+
+    if(HAL_OK != s907x_wlan_start(g_wlan_mode, &wifi_set)){
+        USER_DBG("ap start wtih ssid:%s password:%s fail!\n", wifi_set.ssid, wifi_set.pwd);
+        return;
+    }
+    USER_DBG("wifi_init_softap finished.SSID:%s password:%s\n",wifi_set.ssid, wifi_set.pwd);
+    save_wifi_mode(ZG_AP_MODE);
+#else
+    net_switch_mode(WLAN_MODE_HOSTAP);
+    /* disable AP to set params*/
+    wlan_ap_disable();
+
+    wlan_ap_set(wifi_set.ssid, wifi_set.ssid_len, wifi_set.pwd);
+
+    wlan_ap_enable();
+
+    printf("wifi_init_softap finished.SSID:%s password:%s\n",
+    wifi_set.ssid, wifi_set.pwd);
+
+    save_wifi_mode(ZG_AP_MODE);
+#endif
 }
 
 void wifi_Adapter_start(ZG_wifi_mode_t mode)
@@ -309,6 +364,9 @@ void factory_ap_conf(void)
 {
 	printf("factory ap mode \n");
 	char dev_name[20] = {0};
+    //default netif id S907X_DEV0_ID
+    s907x_wlan_get_mac_address(S907X_DEV0_ID,  mac_addr);
+    printf("macaddrrr:%x,%x,%x,%x,%x,%x\n",mac_addr[0],mac_addr[1],mac_addr[2],mac_addr[3],mac_addr[4],mac_addr[5]);
 	sprintf(dev_name,"LEDnet%02X%02X%02X",mac_addr[3],mac_addr[4],mac_addr[5]);
 	printf("device name:%s\n",dev_name);
 	/* switch to ap mode */
@@ -322,6 +380,7 @@ void factory_ap_conf(void)
 
 int net_service_init(void)
 {
+#if ZG_NET_SERVER_ENBALE
 	observer_base *observer;
 
 	printf("foneric_net_service_init, register network observer\n");
@@ -333,6 +392,7 @@ int net_service_init(void)
 	if (sys_ctrl_attach(observer) != 0)
 		return -1;
 
+#endif
 	return 0;
 }
 
@@ -348,12 +408,29 @@ void wifi_get_mac_info(char *mac_str)
 
 int get_ap_rssi()
 {
+#if 0
   wlan_sta_ap_t *ap = malloc(sizeof(wlan_sta_ap_t)); 
   if (ap == NULL) { 
      printf("get ap info error\n");
   } 
   wlan_sta_ap_info(ap); 
   return ap->rssi;
+#endif
+  
+    int rssi = 0;
+    s907x_link_info_t info;
+    if(s907x_wlan_get_link_infor(&info)){
+        USER_DBG("get link infor error\n");
+        goto exit;
+    }
+    if(!info.is_connected){
+        USER_DBG("link is not connected\n");
+        goto exit;
+    }
+    rssi = info.rssi;
+    
+ exit:
+    return rssi;
 }
 
 void wifi_get_conf_msg(wifi_info_t *wifi_msg)
@@ -366,46 +443,56 @@ ZG_wifi_mode_t wifi_get_mode()
 	return wifi_mode;
 }
 
+static void wifi_get_netif(int *netif)
+{
+    //sta mode or ap mode  -> netif id 0
+    *netif = S907X_DEV0_ID; 
+}
+
 void WIFI_Init()
 {
 	wifi_event_group = xEventGroupCreate();
+    wifi_get_netif(&g_wlan_netif);
 	wlan_get_mac_addr(g_wlan_netif, mac_addr, 6);
     sprintf(mac_addr_str,"%02X%02X%02X%02X%02X%02X",mac_addr[0],mac_addr[1],mac_addr[2],mac_addr[3],mac_addr[4],mac_addr[5]);
     printf("mac sting:%s\n", mac_addr_str);
     net_service_init();
 
     if(Restore_factory_settings_func(RESET_BY_POWER) == -1){
-
+        Z_DEBUG();
     	goto factory_ap_mode;
     }
 
     ZG_data_read(WIFI_MODE_STORE,&wifi_mode);
     if(wifi_mode > 2 || wifi_mode == 0){
-
+        Z_DEBUG();
       goto factory_ap_mode;
     }else{
-      
+      Z_DEBUG();
       uint8_t tmp[65] = {0};
       ZG_data_read(DEV_SSID_STORE,tmp);
       printf("system read:ssid length : %d\n", tmp[0]);
       if(tmp[0] > 32){ // length
-
+        Z_DEBUG();
          goto factory_ap_mode;
       }else{
+        Z_DEBUG();
         wifi_set.ssid_len = tmp[0];
       	memcpy(wifi_set.ssid,tmp + 1,tmp[0]);
       	printf("system read:ssid:%s\n", wifi_set.ssid);
       }
+      Z_DEBUG();
       ZG_data_read(DEV_PWD_STORE,tmp);
       printf("system read:password length : %d\n", tmp[0]);
       if(tmp[0] > 64){ // length
-
+        Z_DEBUG();
          goto factory_ap_mode;
       }else{
-
+        Z_DEBUG();
       	memcpy(wifi_set.pwd,tmp + 1,tmp[0]);
       	memcpy(WF_PWD,wifi_set.pwd,tmp[0]);
       }
+      Z_DEBUG();
       printf("system read:password : %s\n",wifi_set.pwd);
       wifi_Adapter_start(wifi_mode);
     }
@@ -413,6 +500,7 @@ void WIFI_Init()
     return;
 
     factory_ap_mode:
+        Z_DEBUG();
        factory_ap_conf();
        ZG_event_send(FACTORY_SETTING_EVENT);
 } 

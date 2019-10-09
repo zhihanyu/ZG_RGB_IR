@@ -1,5 +1,4 @@
 #include <string.h>
-#include "common/framework/sysinfo.h"
 #include "mbedtls/aes.h"
 
 

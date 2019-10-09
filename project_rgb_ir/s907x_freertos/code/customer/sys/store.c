@@ -1,16 +1,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "image/fdcm.h"
 #include "ZG_system.h"
-#include "kernel/FreeRTOS/task.h"
 
 #define USER_DATA_ADDRESS 1024 * 1024
 #define USER_DATA_SIZE    4096 
 #define SOTRE_SIZE        400
 
 static uint8_t store_dat[SOTRE_SIZE];
-static fdcm_handle_t *g_fdcm_hdl;
+//static fdcm_handle_t *g_fdcm_hdl;
 
 /*
 *| 0  ~ 3  | 4~5      |    6     |       7      |    8    |    9     |     10    |    11    |   12 ~ 13   |  14 ~ 15    |  16 ~  81(66)   | 82 ~ 171(90) |
@@ -248,10 +246,12 @@ int ZG_data_read(store_type_t type,unsigned char *dat)
 static int store_num;
 void ZG_store_fast()
 {
+#if ZG_STORE_FDCM_ENABLE
   if (fdcm_write(g_fdcm_hdl, store_dat, SOTRE_SIZE) != SOTRE_SIZE) {
          
       printf("fast store write fail\n");  
   }
+#endif
 }
 
 
@@ -270,10 +270,12 @@ static void store_task(void *arg)
         store_dat[356] = store_num;
         printf("\n|store count -> %d|\n\n",store_num);
         memcpy(buf,store_dat,SOTRE_SIZE);
+#if ZG_STORE_FDCM_ENABLE
         if (fdcm_write(g_fdcm_hdl, store_dat, SOTRE_SIZE) != SOTRE_SIZE) {
                
             printf("store write fail\n");  
         }
+#endif
      }
   }
   free(buf);
@@ -282,6 +284,7 @@ static void store_task(void *arg)
 
 void store_init()
 {
+#if ZG_STORE_FDCM_ENABLE
   g_fdcm_hdl = fdcm_open(0, USER_DATA_ADDRESS, USER_DATA_SIZE);
   if(g_fdcm_hdl == NULL){
 
@@ -293,5 +296,6 @@ void store_init()
     }
      xTaskCreate(&store_task, "G_store_task", 512, NULL,tskIDLE_PRIORITY + 2, NULL);
   }
+#endif
 
 }

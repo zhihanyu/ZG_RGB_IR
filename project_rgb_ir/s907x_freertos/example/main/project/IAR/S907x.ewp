@@ -367,11 +367,9 @@
           <state>$PROJ_DIR$\..\..\..\..\code\coustom\tuya_iot\include\tuya_middleware\tls</state>
           <state>$PROJ_DIR$\..\..\..\..\code\net\mqtt\MQTTPacket\src</state>
           <state>$PROJ_DIR$\..\..\..\..\code\net\mqtt\MQTTPacket\samples</state>
-          <state>$PROJ_DIR$\..\..\..\..\code\customer\light</state>
+          <state>$PROJ_DIR$\..\..\..\..\code\customer</state>
+          <state>$PROJ_DIR$\..\..\..\..\code\customer\driver\s907x_for_zg_cfg</state>
           <state>$PROJ_DIR$\..\..\..\..\code\customer\net</state>
-          <state>$PROJ_DIR$\..\..\..\..\code\customer\protocol_handle</state>
-          <state>$PROJ_DIR$\..\..\..\..\code\customer\socket</state>
-          <state>$PROJ_DIR$\..\..\..\..\code\customer\sys</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -3272,6 +3270,15 @@
     </file>
   </group>
   <group>
+    <name>store</name>
+    <excluded>
+      <configuration>Debug</configuration>
+    </excluded>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\zg_flash_image\zg_image.c</name>
+    </file>
+  </group>
+  <group>
     <name>utils</name>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\code\utils\ota_hash.c</name>
@@ -3285,6 +3292,12 @@
   </group>
   <group>
     <name>ZG</name>
+    <group>
+      <name>driver</name>
+      <group>
+        <name>s907x_for_zg_cfg</name>
+      </group>
+    </group>
     <group>
       <name>light</name>
       <file>
@@ -3303,17 +3316,17 @@
         <name>$PROJ_DIR$\..\..\..\..\code\customer\light\Light_fun.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\code\customer\light\readme.md</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\light\Remote.c</name>
       </file>
     </group>
     <group>
       <name>net</name>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\..\code\customer\net\readme.md</name>
-      </file>
+      <group>
+        <name>s907x_wlan</name>
+        <file>
+          <name>$PROJ_DIR$\..\..\..\..\code\customer\net\s907x_wlan\s907x_wlan.c</name>
+        </file>
+      </group>
       <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\net\WIFI_config.c</name>
       </file>
@@ -3326,15 +3339,9 @@
       <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\protocol_handle\protocol_handle.c</name>
       </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\..\code\customer\protocol_handle\readme.md</name>
-      </file>
     </group>
     <group>
       <name>socket</name>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\..\code\customer\socket\readme.md</name>
-      </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\socket\tcp_client.c</name>
       </file>
@@ -3348,16 +3355,10 @@
     <group>
       <name>sys</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\AT_CMD.c</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\encryption.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\fota.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\readme.md</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\RTC_time.c</name>
@@ -3366,12 +3367,21 @@
         <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\store.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\ZG_AT_CMD.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\ZG_system.c</name>
       </file>
     </group>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\code\customer\main.c</name>
-    </file>
+    <group>
+      <name>zg_entry</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\..\code\customer\zg_entry\zg_entry.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\..\code\customer\zg_entry\zg_main.c</name>
+      </file>
+    </group>
   </group>
   <file>
     <name>$PROJ_DIR$\..\..\..\..\script\links\IAR\image.icf</name>

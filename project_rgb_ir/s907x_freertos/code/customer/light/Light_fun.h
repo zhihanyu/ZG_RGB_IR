@@ -1,8 +1,6 @@
 #ifndef _LIGHTFUNC__
 #define _LIGHTFUNC__
 
-#include "driver/chip/hal_pwm.h"
-
 #define R_Channel  PWM_GROUP1_CH2
 #define G_Channel  PWM_GROUP1_CH3
 #define B_Channel  PWM_GROUP2_CH4

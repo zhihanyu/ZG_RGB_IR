@@ -11,16 +11,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "kernel/FreeRTOS/FreeRTOS.h"
-#include "kernel/FreeRTOS/task.h"
-#include "kernel/FreeRTOS/event_groups.h"
-#include "kernel/FreeRTOS/queue.h"
-
 #include "lwip/sockets.h"
 
 #include "sys/ZG_system.h"
 #include "udp_perf.h"
-#include "sys/AT_CMD.h"
+#include "sys/ZG_AT_CMD.h"
 
 static int mysocket;
 

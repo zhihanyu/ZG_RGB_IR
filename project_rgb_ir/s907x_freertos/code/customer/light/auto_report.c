@@ -1,5 +1,7 @@
 
 #include "sys/ZG_system.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 static bool Active_query_flag = 0;
 

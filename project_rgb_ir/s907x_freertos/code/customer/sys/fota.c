@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include "mbedtls/aes.h"
 #include "sys/ZG_system.h"
-#include "sys/ota.h"
-#include "kernel/FreeRTOS/task.h"
+#include "s907x_zg_config.h"
+#include "sys/fota.h"
 
 static char ota_path[64];
 static uint8_t ota_code[16];
@@ -29,7 +29,11 @@ int fota_conf(char *host , int host_len,uint16_t port,char *path,int path_len,ch
 
 void ota_task(void *arg)
 {
-
+    while(1){
+        wl_os_mdelay(1000);
+        Z_DEBUG();
+    }
+#if ZG_OTA_TASK_ENABLE
  int return_type = 0;
 
   if(IS_ota_running == false){
@@ -58,6 +62,7 @@ void ota_task(void *arg)
     }
     IS_ota_running = true;
     printf("url:%s\n",http_url);
+#if ZG_OTA_ENABLE
     if (ota_get_image(OTA_PROTOCOL_HTTP, http_url) != OTA_STATUS_OK) { 
 
        printf("ota download error\n");
@@ -71,6 +76,7 @@ void ota_task(void *arg)
 
        return_type = -1;
     } 
+#endif
     if(return_type == -1){
 
         IS_ota_running = false;
@@ -80,14 +86,16 @@ void ota_task(void *arg)
         printf("ota success will reboot afrer 3s\n");
         vTaskDelay(3000 / portTICK_PERIOD_MS); 
         //重启系统 
+#if ZG_OTA_REBOOT_ENABLE
         ota_reboot();
+#endif
     }
     free(http_url);
 
   }
   xHandleTaskOta = NULL;
   vTaskDelete(NULL); 
- 
+#endif
 }
 
 int ota_start()

@@ -1,8 +1,26 @@
 #include "IR.h"
 #include "sys/ZG_system.h"
-#include "driver/chip/hal_gpio.h"
-#include "kernel/FreeRTOS/queue.h"
-#include "driver/chip/hal_timer.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "s907x_zg_config.h"
+
+#if ZG_BUILD
+
+#include "hal_gpio.h"
+#include "hal_timer.h"
+
+#define IR_GPIO_SET             (7)
+#define TIM_10us                (TIM_CAP)
+#define TIM_PRESCALER_NONE      (0)
+#define TIM_PERIOD_399          (399)
+static  timer_hdl_t tim_hdl;
+
+
+#endif
+
+
+
+
 
 /** Have TIMER0_ID & TIMER1_ID timer **/
 #define TIMERID     TIMER0_ID
@@ -152,7 +170,7 @@ unsigned char GET_IR_Repeat()
    return ir_repeat;
 }
 
-void timer_callback(void *arg)
+void zg_timer_callback(void *arg)
 {
     tmr_us++;
   //  printf(" timer irq: %u\n", tmr_us);
@@ -160,42 +178,59 @@ void timer_callback(void *arg)
 
 
 //10 us
-static HAL_Status timer_init()
+static hal_status_e timer_init()
 {
-    HAL_Status status = HAL_ERROR;
-    TIMER_InitParam param;
+#if ZG_BUILD
 
-    param.arg = NULL;
-    param.callback = timer_callback;
-    param.cfg = HAL_TIMER_MakeInitCfg(TIMER_MODE_REPEAT,        /*timer mode*/
-                            TIMER_CLK_SRC_HFCLK,        /*HFCLOCK*/
-                            TIMER_CLK_PRESCALER_4);     /*CLK_PRESCALER*/
-    param.isEnableIRQ = 1;
-    param.period = COUNT_TIME *(HFCLOCK / CLK_PRESCALER);
+    hal_status_e sta = HAL_OK;
+    timer_hdl_t *p_tim = &tim_hdl;
+    
+    wl_memset(p_tim, 0, sizeof(p_tim)/sizeof(timer_hdl_t));
+    
+    //timer id set
+    p_tim->config.idx = TIM_10us; 
+    //no prescaler
+    p_tim->config.prescaler = TIM_PRESCALER_NONE;
+    //10us
+    p_tim->config.period = TIM_PERIOD_399;
+    //interrupt enable
+    p_tim->config.int_enable = TRUE;
+    //set user callback
+    p_tim->it.basic_user_cb.func = zg_timer_callback;
+    p_tim->it.basic_user_cb.context = p_tim;
 
-    status = HAL_TIMER_Init(TIMERID, &param);
-    if (status != HAL_OK)
-       printf("timer int error %d\n", status);
+    sta = s907x_hal_timer_base_init(p_tim);
+    if(HAL_OK != sta){
+        USER_DBG("timer base init fail.\n");
+        goto exit;
+    }
 
-    return status;
+    sta = s907x_hal_timer_start_base(p_tim);
+    if(HAL_OK != sta){
+        USER_DBG("timer base start fail.\n");
+        s907x_hal_timer_base_deinit(p_tim);
+        goto exit;
+    }
+    
+exit:
+
+    return sta;
+#endif
 }
 
 void IR_Init()
 {
-
     key_queue = xQueueCreate(1, 1);
-    GPIO_InitParam param;
-    param.driving = GPIO_DRIVING_LEVEL_1;
-    param.mode = GPIOx_Pn_F6_EINT;
-    param.pull = GPIO_PULL_NONE;
-    HAL_GPIO_Init(GPIO_EINT_PORT, GPIO_EINT_PIN, &param);
+    gpio_init_t init;
+    u32 gpio_pin;
 
-    GPIO_IrqParam irq_param;
-    irq_param.arg = NULL;
-    irq_param.callback = irq_gpio_ipc;
-    irq_param.event = GPIO_IRQ_EVT_FALLING_EDGE; 
-    HAL_GPIO_EnableIRQ(GPIO_EINT_PORT, GPIO_EINT_PIN, &irq_param);
+    gpio_pin = BIT(IR_GPIO_SET);
+    init.mode = GPIO_MODE_INT_FALLING;
+    init.pull = GPIO_NOPULL;
+    if(HAL_OK != s907x_hal_gpio_init(gpio_pin, &init)){
+    USER_DBG("gpio init fail.\n");
+    }
+    s907x_hal_gpio_it_start(gpio_pin, irq_gpio_ipc, &gpio_pin);  
 
     timer_init();
-    HAL_TIMER_Start(TIMERID);
 }

@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-#include "net/wlan/wlan.h"
-
 typedef struct wifi_info_tt
 {
    uint8_t ssid[33];

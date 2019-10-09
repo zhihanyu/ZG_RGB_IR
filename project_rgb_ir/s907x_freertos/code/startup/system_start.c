@@ -9,6 +9,7 @@
 static thread_hdl_t wlan_task_hdl;
 static thread_hdl_t user_main_task_hdl;
 static u8 version_s907x[40];
+static u8 mac_factory[6] = {0xb4,0x04,0x18,0xc6,0x76,0x1a};
 int errno;
    
 extern struct netif xnetif[2]; 
@@ -18,11 +19,62 @@ extern uint8_t __bss_start__[];
 extern uint8_t __bss_end__[];
 #endif
 
+int p;
 void main_task(void* context)
 {
+#if 1
+
+        int i;
+        int ret = -1;
+        u8 *in_buf = NULL;
+        u8 *out_buf = NULL;
+        //p = 0;
+        //wl_memset(&g_fdcm_hdl,0,sizeof(g_fdcm_hdl));
+        //g_fdcm_hdl = fdcm_open(zg_flash_ret_on, ZG_FLASH_SWITCH_MARK, 10);
+        //if(NULL == g_fdcm_hdl){
+
+          
+           while(1){
+              wl_os_mdelay(1000);
+              Z_DEBUG();
+           }
+        //}
+#if 0
+        in_buf = (u8*)wl_malloc(sizeof(u8)*10);
+        if(!in_buf){
+          USER_DBG("in_buf,malloc fail.\n");
+        }
+        
+        out_buf = (u8*)wl_malloc(sizeof(u8)*10);
+        if(!out_buf){
+          USER_DBG("out_buf,malloc fail.\n");
+        }
+        
+        for(i = 0; i < 10; i++){
+          *(in_buf+i) = i;
+          *(out_buf+i) = 0;
+        }
+        
+        if(4096 != fdcm_write(g_fdcm_hdl, in_buf, 10)){
+          USER_DBG("write fail.\n");
+        }
+        
+        if(4096 != fdcm_read(g_fdcm_hdl, out_buf, 10)){
+          USER_DBG("read fail.\n");
+        }
+        
+        if(wl_memcmp(in_buf,out_buf, 10)){
+          USER_DBG("test error.\n");
+        }
+      
+         USER_DBG("test ok.\n");
+#endif
+  
+#endif
+  
 	while(1){
 		wl_os_mdelay(2000);
-    printf("main task runnig..\n");   
+                printf("main task runnig\n");   
 	}
 } 
    
@@ -84,6 +136,34 @@ char * get_app_version_s907x( void )
 	return version_s907x;
 
 }
+
+static void user_task(void *context)
+{	
+    u8 mac[6] = {0};
+    u8 dev_id = S907X_DEV1_ID;
+    u8 mode = s907x_wlan_get_mode();
+    int mark = 0;
+    if(S907X_MODE_STA_AP != mode){
+        dev_id = S907X_DEV0_ID;
+    }
+    s907x_wlan_get_mac_address(dev_id,  mac);
+    if(!wl_memcmp(mac, mac_factory, 6)){
+        mark = 1;
+    }
+
+    while(!mark){
+        wl_os_mdelay(1000);
+        Z_DEBUG();
+    }
+    
+    wl_os_mdelay(1000);
+    
+	USER_DBG("user main start..."); 
+	printf("heap size %d\n", xPortGetFreeHeapSize());	
+    user_main();
+	printf("heap size %d\n", xPortGetFreeHeapSize());	
+	wl_destory_threadself();
+} 
  
 
 static void wlan_task(void *context)
@@ -118,7 +198,11 @@ __set_MSP(HEAP_DATA_END);
 
     if(get_s907_run_mode() == s907x_mode_normal){
         //user app
+#if ZG_BUILD
+      wl_create_thread("zg main thread", 1024*4, MAIN_TASK_PRIO+10, (thread_func_t)user_task, NULL);
+#else
         wl_create_thread("main thread", 512, MAIN_TASK_PRIO, (thread_func_t)main_task, NULL);
+#endif
 	}else if(get_s907_run_mode() == s907x_mode_mp){
 		s907x_wlan_enter_mp();
         s907x_wlan_off(); 
@@ -264,7 +348,7 @@ static void main_entry(void)
 	printf("s907x sdk version %s\n", get_app_version_s907x());
 		
     init_ota_bss();
-	s907x_gpio_init(0);
+	//s907x_gpio_init(0);
 
     system_init();
 

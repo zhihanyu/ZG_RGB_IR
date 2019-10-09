@@ -1,0 +1,12 @@
+D:\MyGit\ZG\project_rgb_ir\s907x_freertos\example\main\project\IAR\..\..\..\..\out\IAR\..\..\script\tools 
+ECHO 处于打开状态。
+ota_bin_ver=0x20191009 
+flash_s: 0x18060020 
+flash_e: 0x180cdb84  
+ram_s: 0x10015900 
+ram_e: 0x100168f4  
+  place at start of USER_RAM_REGION  { readwrite, 
+          placement includes a mix of sections with content (example "rw data s
+"A1":  place at start of [0x10015900-0x10046fff] {
+"A2":  place at start of [0x18060020-0x181fffff] { rw, block .ota1_image.text };
+sec_ram: A1 sec_text: A2  

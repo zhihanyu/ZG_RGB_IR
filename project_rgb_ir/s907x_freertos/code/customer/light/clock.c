@@ -1,6 +1,7 @@
 
 #include "sys/ZG_system.h"
-
+#include "FreeRTOS.h"
+#include "task.h"
 
 static  uint8_t Is_timer_trigger = true;
 static  uint8_t timing_buf[88];

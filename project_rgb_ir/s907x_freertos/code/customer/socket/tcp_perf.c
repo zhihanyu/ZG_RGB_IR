@@ -3,11 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "kernel/FreeRTOS/FreeRTOS.h"
-#include "kernel/FreeRTOS/task.h"
-#include "kernel/FreeRTOS/event_groups.h"
-#include "kernel/FreeRTOS/queue.h"
-
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 

@@ -18,9 +18,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "common/framework/platform_init.h"
-#include "kernel/os/os_time.h"
-
+#include "s907x_zg_config.h"
 #include "net/WIFI_config.h"
 
 #include "socket/udp_perf.h"
@@ -47,7 +45,15 @@ typedef int32_t esp_err_t;
 
 #define BIT0    0x00000001
 
+#if ZG_BUILD
+
+#define ZG_system_time()  wl_get_systemtick()
+
+#else
+
 #define ZG_system_time()  OS_GetTicks()
+
+#endif
 /*
 
 #include "fota.h"

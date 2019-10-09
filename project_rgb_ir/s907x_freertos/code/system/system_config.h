@@ -103,6 +103,7 @@ extern char Image$$OTA_RAM_BSS$$Limit;
 
 //for coustom
 #define TUYA_BUILD			0
+#define ZG_BUILD            1
 
 
 //system section config

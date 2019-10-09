@@ -1,18 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "net/wlan/wlan.h"
-#include "net/wlan/wlan_defs.h"
-#include "common/framework/net_ctrl.h"
-#include "common/framework/platform_init.h"
+
 #include "lwip/inet.h"
-#include "common/framework/sys_ctrl/sys_ctrl.h"
-
-
-#include "kernel/FreeRTOS/FreeRTOS.h"
-#include "kernel/FreeRTOS/task.h"
-#include "kernel/FreeRTOS/event_groups.h"
-#include "kernel/FreeRTOS/queue.h"
-
 #include "ZG_system.h"
 
 static char MCU_ver[30];
@@ -142,7 +131,7 @@ esp_err_t ZG_event_loop_init(ZG_system_event_cb_t cb, void *ctx)
     if(s_event_queue == NULL)
         return  ESP_FAIL;;
     xTaskCreate(ZG_event_loop_task, "ZG_event_loop_task", 1024, NULL, configMAX_PRIORITIES - 6, NULL);
-
+Z_DEBUG();
     s_event_handler_cb = cb;
     s_event_ctx = ctx;
     s_event_init_flag = 1;

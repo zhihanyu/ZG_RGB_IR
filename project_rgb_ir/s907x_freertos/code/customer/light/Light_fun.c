@@ -12,7 +12,6 @@
 
 #include "sys/ZG_system.h"
 #include "Remote.h"
-#include "driver/chip/hal_pwm.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1685,7 +1684,7 @@ void  light_func_handle()
 			}
 		}
 }
-
+#if ZG_PWM_ENABLE
 #define PWM_OUTPUT_CHL		PWM_GROUP0_CH0
 #define PWM_OUTPUT_MODE		PWM_CYCLE_MODE
 
@@ -1694,6 +1693,7 @@ static void pwm_cycle_irq(void *arg,  PWM_IrqEvent event)
 	printf("this is pwm output irq!\n");
 	HAL_PWM_DisableIRQ(PWM_OUTPUT_CHL);
 }
+#endif
 void PWM_init()
 {
 
