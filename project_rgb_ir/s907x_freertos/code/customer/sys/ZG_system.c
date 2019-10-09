@@ -67,14 +67,15 @@ uint8_t ZG_get_device_code()
 
 void ZG_system_start()
 {
-  store_init();
-  light_init();
-	WIFI_Init();
+    store_init();
+    light_init();
+    wl_os_mdelay(500);
+    WIFI_Init();
 
-	tcp_server_task_init();
-	udp_task_init();
-	AES_Data_Func_init();
-	tcp_Client_init();
+    tcp_server_task_init();
+    udp_task_init();
+    AES_Data_Func_init();
+    tcp_Client_init();
 }
 
 static esp_err_t ZG_event_post_to_user(ZG_system_event_t *event)
@@ -131,7 +132,7 @@ esp_err_t ZG_event_loop_init(ZG_system_event_cb_t cb, void *ctx)
     if(s_event_queue == NULL)
         return  ESP_FAIL;;
     xTaskCreate(ZG_event_loop_task, "ZG_event_loop_task", 1024, NULL, configMAX_PRIORITIES - 6, NULL);
-Z_DEBUG();
+
     s_event_handler_cb = cb;
     s_event_ctx = ctx;
     s_event_init_flag = 1;

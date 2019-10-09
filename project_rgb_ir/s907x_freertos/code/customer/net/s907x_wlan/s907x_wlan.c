@@ -129,26 +129,19 @@ static int wlan_set_ap(wifi_info_t *wf_info)
     
     //country code default
     //phymode default
-     Z_DEBUG();
     ret = s907x_wlan_start_ap(&ap_init);
-     Z_DEBUG();
-     printf("%d\n",ret);
+    USER_DBG("start ap ret:%d\n",ret);
     if(!ret){
-       Z_DEBUG();
         //static ip
         IP4_ADDR(&ipaddr, AP_IP_ADDR0 ,AP_IP_ADDR1 , AP_IP_ADDR2 , AP_IP_ADDR3 );
         IP4_ADDR(&netmask, AP_NETMASK_ADDR0, AP_NETMASK_ADDR1, AP_NETMASK_ADDR2, AP_NETMASK_ADDR3);
         IP4_ADDR(&gw, AP_GW_ADDR0, AP_GW_ADDR1, AP_GW_ADDR2, AP_GW_ADDR3);
-        
         netif_set_addr(LwIP_GetNetif(id), &ipaddr, &netmask,&gw);
     }
-      Z_DEBUG();
     dhcps_init(LwIP_GetNetif(id));
-      Z_DEBUG();
-
-      if(ret == HAL_OK){
-        USER_DBG("ap success.\n");
-      }
+    if(ret == HAL_OK){
+      USER_DBG("start ap success.\n");
+    }
     return ret;
 }
 

@@ -3270,15 +3270,6 @@
     </file>
   </group>
   <group>
-    <name>store</name>
-    <excluded>
-      <configuration>Debug</configuration>
-    </excluded>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\code\customer\sys\zg_flash_image\zg_image.c</name>
-    </file>
-  </group>
-  <group>
     <name>utils</name>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\code\utils\ota_hash.c</name>

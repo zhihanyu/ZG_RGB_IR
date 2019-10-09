@@ -35,7 +35,6 @@ static esp_err_t event_handler(void *ctx, ZG_system_event_t *event)
 
     switch(*event){
       case FACTORY_SETTING_EVENT:
-        Z_DEBUG();
       printf("event:factory-setting.\n");
       set_led_switch(MODE_ON);  
       set_led_mode(MODE_FACTORY);
@@ -66,8 +65,7 @@ int user_main(void)
   USER_DBG("user_main.\n");
   ZG_device_info_conf("AK001-ZJ2121","33_01_20190909_ZGXZL",0x33,1);
   ZG_event_loop_init(event_handler,NULL);
-
   ZG_system_start();
   
-	return 0;
+  return 0;
 }

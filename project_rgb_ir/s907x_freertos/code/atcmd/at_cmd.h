@@ -2,7 +2,7 @@
 #define AT_CMD_H
 
 #include "at_common.h"
-#include "os_api.h"
+
 #define AT_HEAD_ASSERT(cmd)  		(cmd[0] == 'A' && \
 							 		 cmd[1] == 'T' && \
 							 		 cmd[2] == '+') 	

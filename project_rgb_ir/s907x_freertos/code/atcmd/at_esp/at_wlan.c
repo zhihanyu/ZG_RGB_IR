@@ -599,7 +599,7 @@ static int atwlan_get_args_cwjap(const int argc, char ** const argv, atwlan_jap_
 {
     int index = 0;
     int pci_en = 0;
-    u8  *bssid = NULL;
+    u8  bssid[6]={0};
 
     PROCESS_ERROR(!((2 <= argc) && (argc <= 4)));
     PROCESS_ERROR(at_parse_param_str(&argv[index]));
@@ -616,8 +616,8 @@ static int atwlan_get_args_cwjap(const int argc, char ** const argv, atwlan_jap_
         if(argv[index]){
             PROCESS_ERROR(at_parse_param_str(&argv[index]));
             PROCESS_ERROR(strlen(argv[index]) != AT_WLAN_MAC_LEN);
-            bssid = jap_cfg->bssid;
             sscanf(argv[index], AT_WLAN_MAC_FMT, &bssid[0], &bssid[1], &bssid[2], &bssid[3],&bssid[4],&bssid[5]);
+			memcpy(jap_cfg->bssid,bssid,6);
             jap_cfg->bssid_set = 1;
         }
         index ++;
@@ -921,9 +921,7 @@ static int atwlan_cwjap(atwlan_jap_cfg_t *jap_cfg,u32 *result)
 	
     if_idx = at_wlan_get_if_idx(AT_WLAN_STA);    
     *result = S907X_IDLE;
-
-	s907x_wlan_scan_ssid(jap_cfg->ssid,strlen(jap_cfg->ssid),&scan_result);
-
+	ret = s907x_wlan_scan_ssid(jap_cfg->ssid,strlen(jap_cfg->ssid),&scan_result);
 	if(jap_cfg->bssid && memcmp(scan_result.scan_info.bssid,jap_cfg->bssid,6)){
 		*result = S907X_NO_NETWORK;
 		goto err;
@@ -1266,7 +1264,6 @@ static void atwlan_cwjap_cur (void *context)
         PROCESS_ERROR(cmd->mode != AT_MODE_W);
     
     argc = at_get_param(argv, cmd->set);
-	memset(&jap_cfg, 0, sizeof(atwlan_jap_cfg_t));
 	
     jap_cfg.bssid = bssid;
     ret = atwlan_get_args_cwjap(argc, argv, &jap_cfg);
@@ -1443,8 +1440,8 @@ static void atwlan_cwlap (void *context)
         if(argv[index]){
             PROCESS_ERROR(at_parse_param_str(&argv[index]));
             PROCESS_ERROR(strlen(argv[index]) != AT_WLAN_MAC_LEN);
-            scan_cfg.bssid = bssid;
             sscanf(argv[index], AT_WLAN_MAC_FMT, &bssid[0], &bssid[1], &bssid[2], &bssid[3],&bssid[4],&bssid[5]);
+			scan_cfg.bssid = bssid;
         }
         index ++;
     }

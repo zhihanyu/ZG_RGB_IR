@@ -2,7 +2,7 @@
 
 "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\arm\bin\armjlink.dll" 
 
-"D:\MyGit\ZG\project_rgb_ir\s907x_freertos\out\IAR\Debug\Exe\application.axf" 
+"D:\MyGit\ZG\project_rgb_ir\s907x_freertos\script\links\IAR\image.icf" 
 
 --plugin "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\arm\bin\armbat.dll" 
 

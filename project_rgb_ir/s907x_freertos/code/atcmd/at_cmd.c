@@ -290,7 +290,10 @@ int at_get_param(char **value, char *val)
     int cnt = 0;
 
     for(token = strsep(&val,","); token != NULL; token = strsep(&val, delim)) {
-        *value++ = token;
+        if(*token)
+			*value++ = token;
+		else
+			*value++;
          cnt++;
          if(cnt >= AT_SET_MAX_ARGC) {
             break;

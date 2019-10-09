@@ -312,19 +312,20 @@ static void wifi_AP_Start()
 #if ZG_BUILD
     g_wlan_mode = S907X_MODE_AP;
 
-    wifi_set.ssid[0] = '0';
-    wifi_set.ssid[1] = '1';
-    wifi_set.ssid[2] = '2';
-    wifi_set.ssid[3] = '0';
-    wifi_set.ssid[4] = '0';
-    wifi_set.ssid[5] = '2';
-    wifi_set.ssid[6] = '2';
-    wifi_set.ssid[7] = '2';
+    /*
+    wifi_set.ssid[0] = 't';
+    wifi_set.ssid[1] = 'e';
+    wifi_set.ssid[2] = 's';
+    wifi_set.ssid[3] = 't';
+    wifi_set.ssid[4] = 's';
+    wifi_set.ssid[5] = 's';
+    wifi_set.ssid[6] = 'i';    
+    wifi_set.ssid[7] = 'd';
     wifi_set.ssid[8] = 0;
-    wifi_set.ssid_len= sizeof(wifi_set.ssid);
+    wifi_set.ssid_len= sizeof(wifi_set.ssid);    
     wl_memset(wifi_set.pwd, 0, sizeof(wifi_set.pwd));
     wifi_set.pwd_len = 0;
-
+    */
 
     if(HAL_OK != s907x_wlan_start(g_wlan_mode, &wifi_set)){
         USER_DBG("ap start wtih ssid:%s password:%s fail!\n", wifi_set.ssid, wifi_set.pwd);
@@ -362,20 +363,19 @@ void wifi_Adapter_start(ZG_wifi_mode_t mode)
 
 void factory_ap_conf(void)
 {
-	printf("factory ap mode \n");
-	char dev_name[20] = {0};
+    printf("factory ap mode \n");
+    char dev_name[20] = {0};
     //default netif id S907X_DEV0_ID
     s907x_wlan_get_mac_address(S907X_DEV0_ID,  mac_addr);
-    printf("macaddrrr:%x,%x,%x,%x,%x,%x\n",mac_addr[0],mac_addr[1],mac_addr[2],mac_addr[3],mac_addr[4],mac_addr[5]);
-	sprintf(dev_name,"LEDnet%02X%02X%02X",mac_addr[3],mac_addr[4],mac_addr[5]);
-	printf("device name:%s\n",dev_name);
-	/* switch to ap mode */
-	net_switch_mode(WLAN_MODE_HOSTAP);
+    sprintf(dev_name,"LEDnet%02X%02X%02X",mac_addr[3],mac_addr[4],mac_addr[5]);
+    printf("device name:%s\n",dev_name);
+    /* switch to ap mode */
+    net_switch_mode(WLAN_MODE_HOSTAP);
     wifi_ssid_conf((uint8_t *)dev_name,12);
     wifi_password_conf(NULL,64);
     wifi_Adapter_start(ZG_AP_MODE);
     ZG_store_fast();
-	tcp_client_deinit();
+    tcp_client_deinit();
 }
 
 int net_service_init(void)
@@ -459,16 +459,13 @@ void WIFI_Init()
     net_service_init();
 
     if(Restore_factory_settings_func(RESET_BY_POWER) == -1){
-        Z_DEBUG();
     	goto factory_ap_mode;
     }
 
     ZG_data_read(WIFI_MODE_STORE,&wifi_mode);
     if(wifi_mode > 2 || wifi_mode == 0){
-        Z_DEBUG();
       goto factory_ap_mode;
     }else{
-      Z_DEBUG();
       uint8_t tmp[65] = {0};
       ZG_data_read(DEV_SSID_STORE,tmp);
       printf("system read:ssid length : %d\n", tmp[0]);
@@ -476,31 +473,25 @@ void WIFI_Init()
         Z_DEBUG();
          goto factory_ap_mode;
       }else{
-        Z_DEBUG();
         wifi_set.ssid_len = tmp[0];
       	memcpy(wifi_set.ssid,tmp + 1,tmp[0]);
       	printf("system read:ssid:%s\n", wifi_set.ssid);
       }
-      Z_DEBUG();
       ZG_data_read(DEV_PWD_STORE,tmp);
       printf("system read:password length : %d\n", tmp[0]);
       if(tmp[0] > 64){ // length
-        Z_DEBUG();
          goto factory_ap_mode;
       }else{
-        Z_DEBUG();
       	memcpy(wifi_set.pwd,tmp + 1,tmp[0]);
       	memcpy(WF_PWD,wifi_set.pwd,tmp[0]);
       }
-      Z_DEBUG();
       printf("system read:password : %s\n",wifi_set.pwd);
       wifi_Adapter_start(wifi_mode);
     }
 
     return;
-
+    
     factory_ap_mode:
-        Z_DEBUG();
        factory_ap_conf();
        ZG_event_send(FACTORY_SETTING_EVENT);
 } 

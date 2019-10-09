@@ -44,7 +44,8 @@ extern char Image$$OTA_RAM_BSS$$Limit;
 //low power config
 #define S907X_LOW_POWER     0
 //heap ram end config
-#define HEAP_DATA_END       0x10046FFF
+#define MSP_TOP             0x10046FFF
+#define HEAP_DATA_END       (MSP_TOP - 0x1000)
 //LWIP config
 #define CONFIG_HIGH_TP      0
 //LWIP select
@@ -103,7 +104,7 @@ extern char Image$$OTA_RAM_BSS$$Limit;
 
 //for coustom
 #define TUYA_BUILD			0
-#define ZG_BUILD            1
+#define ZG_BUILD                        1
 
 
 //system section config
