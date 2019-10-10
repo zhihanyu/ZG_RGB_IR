@@ -1,4 +1,5 @@
 #include "s907x_wlan.h"
+#include "s907x_zg_config.h"
 #include "lwip/ip_addr.h"
 #include "dhcps.h"
 
@@ -51,25 +52,40 @@ static int wlan_connect_normal(s907x_sta_init_t *init)
     
     target.match = FALSE;
     strcpy(target.ssid, init->ssid);
+    USER_DBG("target.ssid:%s\n",target.ssid);
     wl_init_sema(&target.sema, 0, sema_binary);
     ret = s907x_wlan_scan(s907x_wlan_scan_cb, S907X_DEFAULT_SCAN_AP_NUMS, &target);
+    USER_DBG("ret = %d\n",ret);
     if(ret) {
         wl_free_sema(&target.sema);
         return ret;
     }
+    USER_DBG("ret = %d\n",ret);
     wl_wait_sema(&target.sema, portMAX_DELAY);		
     wl_free_sema(&target.sema);
     if(target.match){
+        Z_DEBUG();
         //set security
         init->security = target.security;
+        USER_DBG("target.security = %d\n", target.security);
         //set connection mode
         init->conn.mode	=  CONN_MODE_BLOCKING;
-        init->conn.blocking_timeout = S907X_DEFAULT_CONN_TO;
+        init->conn.blocking_timeout = ZG_WIFI_BLOCK_TIME;
+        USER_DBG("ret = %d\n",ret);
         ret = s907x_wlan_start_sta(init);
+        USER_DBG("ret = %d\n",ret);
+
+        //info for test
+        USER_DBG("init->ssid:%s\n", init->ssid);
+        USER_DBG("init->ssid_len:%d\n", init->ssid_len);
+        USER_DBG("init->password:%s\n", init->password);
+        USER_DBG("init->password_len:%d\n", init->password_len);
+        USER_DBG("init->security:%s\n", init->security);
     }else{
+        USER_DBG("ret = %d\n",ret);
         ret = HAL_ERROR;
     }
-    
+    USER_DBG("ret = %d\n",ret);
     return ret;
 }
 
@@ -87,15 +103,18 @@ static int wlan_set_sta(wifi_info_t *wf_info)
     s907x_sta_init.ssid = wf_info->ssid;
     s907x_sta_init.ssid_len = wf_info->ssid_len;
     s907x_sta_init.password = wf_info->pwd;
-    s907x_sta_init.password_len = (sizeof(wf_info->pwd)/sizeof(wf_info->pwd[0]));
+    s907x_sta_init.password_len = wf_info->pwd_len;
+    USER_DBG("s907x_sta_init.password_len = %d\n", s907x_sta_init.password_len);
     
     //only ssid password, try to scan target ssid
+    USER_DBG("ret = %d\n",ret);
     ret =  wlan_connect_normal(&s907x_sta_init);
+    USER_DBG("ret = %d\n",ret);
     if(!ret){
         dhcpc_start(0, 0);
         USER_DBG("dhcp start!\n");
     }
-    
+    Z_DEBUG();
     return ret;
 }
 
@@ -191,11 +210,11 @@ static void get_mac_netif(u8 id, u8* mac)
 int wlan_get_mac_addr(u8 netif_id, u8* mac, int mac_len)
 {
     int ret = -1;
-
-    if(S907X_DEV0_ID != netif_id || S907X_DEV1_ID != netif_id){
-        goto exit; 
-    }
     
+    if(netif_id < S907X_DEV0_ID || netif_id > S907X_DEV1_ID){
+      goto exit;
+    }
+
     get_mac_netif(netif_id, mac);
     ret = 0;
   

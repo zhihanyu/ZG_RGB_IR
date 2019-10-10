@@ -1,10 +1,10 @@
-C:\Users\Thinkpad\Desktop\test\s907x_freertos\example\main\project\IAR\..\..\..\..\out\IAR\..\..\script\tools 
+D:\MyGit\ZG\project_rgb_ir\s907x_freertos\example\main\project\IAR\..\..\..\..\out\IAR\..\..\script\tools 
 ECHO 处于打开状态。
-ota_bin_ver=0x20191009 
+ota_bin_ver=0x20191010 
 flash_s: 0x18060020 
-flash_e: 0x180cdcd0  
+flash_e: 0x180cdf28  
 ram_s: 0x10015900 
-ram_e: 0x100168ec  
+ram_e: 0x10016904  
   place at start of USER_RAM_REGION  { readwrite, 
           placement includes a mix of sections with content (example "rw data s
 "A1":  place at start of [0x10015900-0x10046fff] {

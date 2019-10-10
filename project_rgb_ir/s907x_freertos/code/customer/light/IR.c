@@ -16,7 +16,7 @@
 static  timer_hdl_t tim_hdl;
 
 
-#endif
+
 
 
 
@@ -234,3 +234,4 @@ void IR_Init()
 
     timer_init();
 }
+#endif

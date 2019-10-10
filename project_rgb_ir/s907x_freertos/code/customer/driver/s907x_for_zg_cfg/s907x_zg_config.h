@@ -13,3 +13,12 @@
 
 #define WLAN_MODE_HOSTAP        S907X_MODE_AP
 #define WLAN_MODE_STA           S907X_MODE_STA
+
+
+
+
+//test  macro
+#define ZG_WIFI_BASE_ENABLE              0
+#define ZG_WIFI_TEST_SSID_USE            1
+#define ZG_WIFI_BLOCK_TIME               20000
+

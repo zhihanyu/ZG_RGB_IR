@@ -23,7 +23,7 @@ void main_task(void* context)
 
 	while(1){
 		wl_os_mdelay(2000);
-    printf("main task running..\n");   
+    printf("main task running..dadadavf\n");   
 	}
 } 
    

@@ -19,7 +19,16 @@ static int g_wlan_netif = S907X_DEV0_ID;
 static      wdg_hdl_t wdg_hdl;
 #endif
 
+
+#if ZG_WIFI_TEST_SSID_USE
+static u8 test_ssid[] = "Zengge-auto";
+static u8 test_pwd[] = "aslan123,";
+
+//static u8 test_ssid[] = "yudeiphone";
+//static u8 test_pwd[] = "123654789";
 #endif
+
+
 
 static uint8_t mac_addr[6];
 static char mac_addr_str[13];
@@ -457,11 +466,12 @@ void WIFI_Init()
     sprintf(mac_addr_str,"%02X%02X%02X%02X%02X%02X",mac_addr[0],mac_addr[1],mac_addr[2],mac_addr[3],mac_addr[4],mac_addr[5]);
     printf("mac sting:%s\n", mac_addr_str);
     net_service_init();
-
+#if 0
     if(Restore_factory_settings_func(RESET_BY_POWER) == -1){
     	goto factory_ap_mode;
     }
-
+#endif
+#if ZG_WIFI_BASE_ENABLE
     ZG_data_read(WIFI_MODE_STORE,&wifi_mode);
     if(wifi_mode > 2 || wifi_mode == 0){
       goto factory_ap_mode;
@@ -470,7 +480,6 @@ void WIFI_Init()
       ZG_data_read(DEV_SSID_STORE,tmp);
       printf("system read:ssid length : %d\n", tmp[0]);
       if(tmp[0] > 32){ // length
-        Z_DEBUG();
          goto factory_ap_mode;
       }else{
         wifi_set.ssid_len = tmp[0];
@@ -487,7 +496,22 @@ void WIFI_Init()
       }
       printf("system read:password : %s\n",wifi_set.pwd);
       wifi_Adapter_start(wifi_mode);
-    }
+#else
+#if ZG_BUILD
+    wifi_mode = ZG_STA_MODE;
+    if(wifi_mode > 2 || wifi_mode == 0){
+      goto factory_ap_mode;
+    }else{
+        wl_memcpy(wifi_set.ssid, test_ssid, sizeof(test_ssid));
+        wifi_set.ssid_len = sizeof(test_ssid);
+        USER_DBG("test ssid:%s,ssid len:%d\n",wifi_set.ssid,wifi_set.ssid_len);
+        wl_memcpy(wifi_set.pwd, test_pwd, sizeof(test_pwd));
+        wifi_set.pwd_len = sizeof(test_pwd);
+        USER_DBG("test pwd:%s,pwd len:%d\n",wifi_set.pwd,wifi_set.pwd_len);
+        wifi_Adapter_start(wifi_mode);
+     }
+#endif  
+#endif
 
     return;
     
@@ -495,3 +519,4 @@ void WIFI_Init()
        factory_ap_conf();
        ZG_event_send(FACTORY_SETTING_EVENT);
 } 
+#endif
