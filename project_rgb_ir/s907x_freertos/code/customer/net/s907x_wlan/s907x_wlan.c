@@ -80,7 +80,7 @@ static int wlan_connect_normal(s907x_sta_init_t *init)
         USER_DBG("init->ssid_len:%d\n", init->ssid_len);
         USER_DBG("init->password:%s\n", init->password);
         USER_DBG("init->password_len:%d\n", init->password_len);
-        USER_DBG("init->security:%s\n", init->security);
+        USER_DBG("init->security:%d\n", init->security);
     }else{
         USER_DBG("ret = %d\n",ret);
         ret = HAL_ERROR;
